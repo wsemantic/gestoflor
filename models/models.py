@@ -8,7 +8,7 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         res = super(SaleOrder, self).action_confirm()
-        _logger.info(f'WSEM fsm action_confirm')
+        _logger.info(f'WSEM fsm action_confirm SR')
         for order in self:
             fsm_order = self.env['fsm.order'].search([('sale_id', '=', order.id)], limit=1)
             if fsm_order:
