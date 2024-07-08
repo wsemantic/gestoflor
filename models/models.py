@@ -20,11 +20,17 @@ class SaleOrder(models.Model):
                         equipments = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)])
                         for equipment in equipments:
                             _logger.info(f'WSEM fsm iterando equipo')
-                            self._add_equipment_to_fsm_order(fsm_order, equipment)
+                            self._create_stock_request_for_equipment(fsm_order, equipment)
         return res
 
-    def _add_equipment_to_fsm_order(self, fsm_order, equipment):
-        fsm_order.equipment_ids |= equipment
+    def _create_stock_request_for_equipment(self, fsm_order, equipment):
+        self.env['stock.request'].create({
+            'fsm_order_id': fsm_order.id,
+            'product_id': equipment.product_id.id,
+            'product_uom_qty': 1,
+            'state': 'draft',  # Assuming 'draft' is the initial state
+        })
         for child in equipment.child_ids:
             _logger.info(f'WSEM fsm add child')
-            self._add_equipment_to_fsm_order(fsm_order, child)
+            self._create_stock_request_for_equipment(fsm_order, child)
+
