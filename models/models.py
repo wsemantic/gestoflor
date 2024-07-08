@@ -23,12 +23,15 @@ class SaleOrder(models.Model):
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
                 for line in order.order_line:
                     if line.product_id:
-                        # Buscar equipos asociados a la variante del producto
-                        product_tmpl_id = line.product_id.product_tmpl_id.id
-                        equipments = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)])
-                        for equipment in equipments:
-                            _logger.info(f'WSEM fsm iterando equipo')
+                        # Buscar un equipo asociado a la variante del producto
+                        equipment = self.env['fsm.equipment'].search([('product_id', '=', line.product_id.id)], limit=1)
+                        if equipment:
+                            _logger.info(f'WSEM fsm iterando equipo principal')
                             self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, order.fsm_location_id.id)
+                            # Crear solicitudes para equipos hijos
+                            for child in equipment.child_ids:
+                                _logger.info(f'WSEM fsm add child')
+                                self._create_stock_request_for_equipment(fsm_order, child, order.commitment_date, order.fsm_location_id.id)
         return res
 
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id):
@@ -43,6 +46,4 @@ class SaleOrder(models.Model):
             'direction': 'outbound',
             'picking_policy': 'one'
         })
-        for child in equipment.child_ids:
-            _logger.info(f'WSEM fsm add child')
-            self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id)
+
