@@ -36,7 +36,8 @@ class SaleOrder(models.Model):
             'product_uom_qty': 1,
             'state': 'draft',  # Assuming 'draft' is the initial state
             'expected_date': expected_date,
-            'direction':'outbound'
+            'direction':'outbound',
+            'picking_policy':'one'
         })
         for child in equipment.child_ids:
             _logger.info(f'WSEM fsm add child')
