@@ -28,6 +28,7 @@ class SaleOrder(models.Model):
             'fsm_order_id': fsm_order.id,
             'product_id': equipment.product_id.id,
             'product_uom_qty': 1,
+            'direction':'outbound',
             'state': 'draft',  # Assuming 'draft' is the initial state
         })
         for child in equipment.child_ids:
