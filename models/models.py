@@ -24,7 +24,9 @@ class SaleOrder(models.Model):
                 for line in order.order_line:
                     if line.product_id:
                         # Buscar un equipo asociado a la variante del producto
-                        equipment = self.env['fsm.equipment'].search([('product_id', '=', line.product_id.id)], limit=1)
+                        
+                        product_tmpl_id = line.product_id.product_tmpl_id.id
+                        equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
                         if equipment:
                             _logger.info(f'WSEM fsm iterando equipo principal')
                             self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, order.fsm_location_id.id)
