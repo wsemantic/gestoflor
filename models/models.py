@@ -16,6 +16,7 @@ class SaleOrder(models.Model):
                 for line in order.order_line:
                     if line.product_id:
                         # Buscar equipos asociados a la variante del producto
+                        product_tmpl_id = line.product_id.product_tmpl_id.id
                         equipments = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)])
                         for equipment in equipments:
                             _logger.info(f'WSEM fsm iterando equipo')
