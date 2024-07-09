@@ -43,16 +43,18 @@ class SaleOrder(models.Model):
         return res
 
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id):
-        self.env['stock.request'].create({
-            'fsm_order_id': fsm_order.id,
-            'product_id': equipment.product_id.id,
-            'product_uom_id': equipment.product_id.uom_id.id,
-            'product_uom_qty': 1,
-            'state': 'draft',  # Assuming 'draft' is the initial state
-            'expected_date': expected_date,
-            'location_id': location_id,
-            'direction': 'outbound',
-            'picking_policy': 'one'
-        })
+        if equipment.product_id.type == 'product':
+            self.env['stock.request'].create({
+                'fsm_order_id': fsm_order.id,
+                'product_id': equipment.product_id.id,
+                'product_uom_id': equipment.product_id.uom_id.id,
+                'product_uom_qty': 1,
+                'state': 'draft',  # Assuming 'draft' is the initial state
+                'expected_date': expected_date,
+                'location_id': location_id,
+                'direction': 'outbound',
+                'picking_policy': 'one'
+            })
+
 
 
