@@ -15,25 +15,31 @@ class SaleOrder(models.Model):
                 raise UserError('La ubicación FSM no está definida. Por favor, defina una ubicación FSM antes de confirmar el pedido.')
 
         res = super(SaleOrder, self).action_confirm()
-        _logger.info(f'WSEM fsm action_confirm')
+        _logger.info('WSEM fsm action_confirm')
         
         for order in self:
             fsm_order = self.env['fsm.order'].search([('sale_id', '=', order.id)], limit=1)
             if fsm_order:
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
+                picking = self.env['stock.picking'].search([('origin', '=', order.name)], limit=1)
+                if not picking:
+                    raise UserError('No se encontró un albarán asociado al pedido de venta.')
+                
+                location_id = picking.location_id.id
+                _logger.info(f'WSEM fsm location_id {location_id}')
+                
                 for line in order.order_line:
                     if line.product_id:
                         # Buscar un equipo asociado a la variante del producto
-                        
                         product_tmpl_id = line.product_id.product_tmpl_id.id
                         equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
                         if equipment:
-                            _logger.info(f'WSEM fsm iterando equipo principal')
-                            self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, order.fsm_location_id.id)
+                            _logger.info('WSEM fsm iterando equipo principal')
+                            self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, location_id)
                             # Crear solicitudes para equipos hijos
                             for child in equipment.child_ids:
-                                _logger.info(f'WSEM fsm add child')
-                                self._create_stock_request_for_equipment(fsm_order, child, order.commitment_date, order.fsm_location_id.id)
+                                _logger.info('WSEM fsm add child')
+                                self._create_stock_request_for_equipment(fsm_order, child, order.commitment_date, location_id)
         return res
 
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id):
@@ -48,4 +54,5 @@ class SaleOrder(models.Model):
             'direction': 'outbound',
             'picking_policy': 'one'
         })
+
 
