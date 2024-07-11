@@ -21,11 +21,8 @@ class SaleOrder(models.Model):
             fsm_order = self.env['fsm.order'].search([('sale_id', '=', order.id)], limit=1)
             if fsm_order:
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
-                picking = self.env['stock.picking'].search([('origin', '=', order.name)], limit=1)
-                if not picking:
-                    raise UserError('No se encontró un albarán asociado al pedido de venta.')
-                
-                location_id = picking.location_id.id
+
+                location_id =  self.env['stock.location'].search([('name', '=', 'AJR1')], limit=1)
                 _logger.info(f'WSEM fsm location_id {location_id}')
                 
                 for line in order.order_line:
