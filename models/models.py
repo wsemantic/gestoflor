@@ -37,15 +37,12 @@ class SaleOrder(models.Model):
                         equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
                         if equipment:
                             _logger.info('WSEM fsm iterando equipo principal')
-                            self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, location_id)
-                            # Crear solicitudes para equipos hijos
-                            for child in equipment.child_ids:
-                                _logger.info('WSEM fsm add child')
-                                self._create_stock_request_for_equipment(fsm_order, child, order.commitment_date, location_id)
+                            self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, location_id, 0)
+
         return res
 
-    def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id):
-        if equipment.product_id.type == 'product':
+    def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id, level):
+        if level=0 or equipment.product_id.type == 'product':
             self.env['stock.request'].create({
                 'fsm_order_id': fsm_order.id,
                 'product_id': equipment.product_id.id,
@@ -58,5 +55,9 @@ class SaleOrder(models.Model):
                 'picking_policy': 'one'
             })
 
+            # Crear solicitudes para equipos hijos
+            for child in equipment.child_ids:
+                _logger.info('WSEM fsm add child')
+                self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id, level+1)
 
 
