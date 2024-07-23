@@ -59,5 +59,7 @@ class SaleOrder(models.Model):
             for child in equipment.child_ids:
                 _logger.info('WSEM fsm add child')
                 self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id, level+1)
+                if level==1:
+                    break
 
 
