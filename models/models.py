@@ -42,7 +42,7 @@ class SaleOrder(models.Model):
         return res
 
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id, level):
-        if level=0 or equipment.product_id.type == 'product':
+        if level==0 or equipment.product_id.type == 'product':
             self.env['stock.request'].create({
                 'fsm_order_id': fsm_order.id,
                 'product_id': equipment.product_id.id,
