@@ -30,10 +30,16 @@ class SaleOrder(models.Model):
                 location_id=location.id
                 _logger.info(f'WSEM fsm location_id {location_id}')
                 
+                processed_templates = set()
                 for line in order.order_line:
                     if line.product_id:
                         # Buscar un equipo asociado a la variante del producto
                         product_tmpl_id = line.product_id.product_tmpl_id.id
+                                                
+                        if product_tmpl_id in processed_templates:
+                            continue
+                        processed_templates.add(product_tmpl_id)
+        
                         equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
                         if equipment:
                             _logger.info('WSEM fsm iterando equipo principal')
