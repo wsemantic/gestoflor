@@ -34,14 +34,14 @@ class SaleOrder(models.Model):
                 for line in order.order_line:
                     if line.product_id:
                         # Buscar un equipo asociado a la variante del producto
-                        product_tmpl_id = line.product_id.product_tmpl_id.id
+                        product_tmpl = line.product_id.product_tmpl_id
                                                 
-                        if product_tmpl_id in processed_templates:
+                        if product_tmpl.id in processed_templates:
                             continue
-                        processed_templates.add(product_tmpl_id)
+                        processed_templates.add(product_tmpl.id)
                         
                         # Buscar si el producto es un servicio
-                        if product_tmpl_id.type == 'service':
+                        if product_tmpl.type == 'service':
                             # Buscar las listas de materiales que contengan el producto como componente
                             boms = self.env['mrp.bom'].search([('bom_line_ids.product_id', '=', line.product_id.id)])
                             
