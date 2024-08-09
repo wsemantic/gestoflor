@@ -73,13 +73,7 @@ class SaleOrder(models.Model):
                 'direction': 'outbound',
                 'picking_policy': 'one'
             })
-
-            # Crear solicitudes para equipos hijos
-            for child in equipment.child_ids:
-                _logger.info('WSEM fsm add child')
-                self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id, level+1)
-                if level==0:
-                    break
+          
                     
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id, level):
         if level==0 or equipment.product_id.type == 'product':
