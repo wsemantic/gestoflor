@@ -15,15 +15,15 @@ class SaleOrder(models.Model):
                 raise UserError('La ubicación FSM no está definida. Por favor, defina una ubicación FSM antes de confirmar el pedido.')
 
         res = super(SaleOrder, self).action_confirm()
-        _logger.info('WSEM fsm action_confirm')
+        _logger.info('WSEM fsm action_confirm v2')
         
         for order in self:
             fsm_order = self.env['fsm.order'].search([('sale_id', '=', order.id)], limit=1)
             if fsm_order:
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
+                
+                location = env.ref('stock.stock_location_output')
 
-                location_name='UCentral'
-                location =  self.env['stock.location'].search([('name', '=', location_name)], limit=1)
                 if not location:
                     raise UserError(f'No existe la ubicacion {location_name}')
                 
