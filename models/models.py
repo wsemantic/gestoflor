@@ -39,14 +39,48 @@ class SaleOrder(models.Model):
                         if product_tmpl_id in processed_templates:
                             continue
                         processed_templates.add(product_tmpl_id)
+                        
+                        # Buscar si el producto es un servicio
+                        if product_tmpl_id.type == 'service':
+                            # Buscar las listas de materiales que contengan el producto como componente
+                            boms = self.env['mrp.bom'].search([('bom_line_ids.product_id', '=', line.product_id.id)])
+                            
+                            # Iterar sobre las listas de materiales encontradas
+                            for bom in boms:
+                                for bom_line in bom.bom_line_ids:
+                                    if bom_line.product_id != line.product_id:
+                                        self._create_stock_request_for_product(fsm_order, bom_line.product_id, order.commitment_date, location_id, 0)
+                        
         
-                        equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
+                        '''equipment = self.env['fsm.equipment'].search([('product_id.product_tmpl_id', '=', product_tmpl_id)], limit=1)
                         if equipment:
                             _logger.info('WSEM fsm iterando equipo principal')
                             self._create_stock_request_for_equipment(fsm_order, equipment, order.commitment_date, location_id, 0)
+                            '''
 
         return res
 
+    def _create_stock_request_for_product(self, fsm_order, product_id, expected_date, location_id, level):
+        if level==0 or product_id.type == 'product':
+            self.env['stock.request'].create({
+                'fsm_order_id': fsm_order.id,
+                'product_id': product_id.id,
+                'product_uom_id': product_id.uom_id.id,
+                'product_uom_qty': 1,
+                'state': 'draft',  # Assuming 'draft' is the initial state
+                'expected_date': expected_date,
+                'location_id': location_id,
+                'direction': 'outbound',
+                'picking_policy': 'one'
+            })
+
+            # Crear solicitudes para equipos hijos
+            for child in equipment.child_ids:
+                _logger.info('WSEM fsm add child')
+                self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id, level+1)
+                if level==0:
+                    break
+                    
     def _create_stock_request_for_equipment(self, fsm_order, equipment, expected_date, location_id, level):
         if level==0 or equipment.product_id.type == 'product':
             self.env['stock.request'].create({
@@ -67,5 +101,7 @@ class SaleOrder(models.Model):
                 self._create_stock_request_for_equipment(fsm_order, child, expected_date, location_id, level+1)
                 if level==0:
                     break
+                    
+                    
 
 
