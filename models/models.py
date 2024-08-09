@@ -22,7 +22,7 @@ class SaleOrder(models.Model):
             if fsm_order:
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
                 
-                location = env.ref('stock.stock_location_output')
+                location = self.env.ref('stock.stock_location_output')
 
                 if not location:
                     raise UserError(f'No existe la ubicacion {location_name}')
