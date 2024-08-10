@@ -22,7 +22,9 @@ class SaleOrder(models.Model):
             if fsm_order:
                 _logger.info(f'WSEM fsm orden {fsm_order.id}')
                 
-                location = self.env.ref('stock.stock_location_output')
+                #location = self.env.ref('stock.stock_location_output')
+                #para que reserve y reduzca el disponible debe enviarse a una ubicacion no externa. Se pierde los dos pasos de ubicaciones pero sigue habiendo dos pasos en estado de la solicitud
+                location = self.env.ref('stock.stock_location_customers')
 
                 if not location:
                     raise UserError(f'No existe la ubicacion {location_name}')
@@ -47,6 +49,7 @@ class SaleOrder(models.Model):
                             
                             # Iterar sobre las listas de materiales encontradas
                             for bom in boms:
+                                self._create_stock_request_for_product(fsm_order, bom.product_id, order.commitment_date, location_id, 0)
                                 for bom_line in bom.bom_line_ids:
                                     if bom_line.product_id != line.product_id:
                                         self._create_stock_request_for_product(fsm_order, bom_line.product_id, order.commitment_date, location_id, 0)
