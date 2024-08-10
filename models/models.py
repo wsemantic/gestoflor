@@ -49,6 +49,7 @@ class SaleOrder(models.Model):
                             
                             # Iterar sobre las listas de materiales encontradas
                             for bom in boms:
+                                _logger.info(f'WSEM BOM product {bom.product_id}')
                                 self._create_stock_request_for_product(fsm_order, bom.product_id, order.commitment_date, location_id, 0)
                                 for bom_line in bom.bom_line_ids:
                                     if bom_line.product_id != line.product_id:
